@@ -19,7 +19,6 @@ gfx_defines! {
     }
 }
 
-const VERTEX_SRC: &[u8] = include_bytes!("../resources/vertex.glslv");
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Direction {
@@ -56,9 +55,9 @@ impl MainState {
         let canvas = Canvas::with_window_size(ctx).unwrap();
         let mand = Mandel{
             position: [0.0, 0.0],
-            center: [0.181688, -0.83445954],
-            time: 36.033432,
-            zoom: 170091.72,
+            center: [0.0, 0.0],
+            time: 0.0,
+            zoom: 1.0,
             dimension: [graphics::size(ctx).0 as f32, graphics::size(ctx).1 as f32],
         };
         let thing1 = include_bytes!("../resources/basic_330.glslv");
