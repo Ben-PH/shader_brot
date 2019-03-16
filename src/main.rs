@@ -9,7 +9,14 @@ use ggez::GameResult;
 
 use std::env;
 use std::path;
+
+mod direction;
+use direction::*;
+
 gfx_defines! {
+
+    // Input uniforms that get passed into the shader
+    // TODO set it up so that you can idiomatically select for mandel or julia
     constant Mandel {
         position: [f32; 2] = "u_MousePos",
         center: [f32; 2] = "u_Center",
@@ -20,78 +27,74 @@ gfx_defines! {
 }
 
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-}
-
-impl Direction {
-    pub fn from_keycode(key: KeyCode) -> Option<Direction> {
-        match key {
-            KeyCode::Up => Some(Direction::Up),
-            KeyCode::Down => Some(Direction::Down),
-            KeyCode::Left => Some(Direction::Left),
-            KeyCode::Right => Some(Direction::Right),
-            _ => None,
-        }
-    }
-}
 #[derive (Debug)]
 struct MainState {
-    canvas: Canvas,
+    canvas_render_target: Canvas,
     center: cgmath::Point2<f32>,
     zoom: f32,
-    mand: Mandel,
 
-    shad: graphics::Shader<Mandel>,
+    mandel_uniforms: Mandel,
+    shader: graphics::Shader<Mandel>,
 }
 
 impl MainState {
     fn new(ctx: &mut Context) -> GameResult<Self> {
 
-        let mand = Mandel{
+        let mandel_uniforms = Mandel{
             position: [0.0, 0.0],
-            center: [0.0, 0.0],
+            center: [0.0, 0.0], // TODO check if this is removable duplicate
             time: 0.0,
-            zoom: 1.0,
+            zoom: 1.0,// TODO check if this is removable duplicate
             dimension: [graphics::size(ctx).0 as f32, graphics::size(ctx).1 as f32],
         };
-        let thing1 = include_bytes!("../resources/basic_330.glslv");
-        let thing2 = include_bytes!("../resources/fractal.glslf");
-        let canvas = Canvas::with_window_size(ctx)?;
-        let shad = graphics::Shader::from_u8(
+
+        let shader = graphics::Shader::from_u8(
             ctx,
-            thing1,
-            thing2,
-            mand,
+            // vertex source-code
+            include_bytes!("../resources/basic_330.glslv"),
+            // fragment source-code
+            include_bytes!("../resources/fractal.glslf"),
+            mandel_uniforms,
             "Mandel",
             None
         )?;
 
+        let canvas_render_target = Canvas::with_window_size(ctx)?;
+
+        // bring it all together
         Ok(Self {
-            canvas,
-            center: [0.0, -0.5].into(),
-            zoom: 1.0,
-            mand,
-            shad,
+            canvas_render_target,
+            center: [0.0, -0.5].into(),// TODO check if this is removable duplicate
+            zoom: 1.0,// TODO check if this is removable duplicate
+            mandel_uniforms,
+            shader,
         })
     }
 }
 
 impl ggez::event::EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        let time = ggez::timer::time_since_start(ctx);
-        self.mand.time = ggez::timer::duration_to_f64(time) as f32;
+        // shader uniform update
+        let shader_time = ggez::timer::time_since_start(ctx);
+        self.mandel_uniforms.time = ggez::timer::duration_to_f64(shader_time) as f32;
         Ok(())
     }
-    fn resize_event(&mut self, _ctx: &mut Context, width: f32, height: f32) {
-        self.mand.dimension[0] = width * 1.5;
-        self.mand.dimension[1] = height * 1.5;
-        // println!("dim: {:?}", self.mand.dimension);
 
+    fn resize_event(&mut self, _ctx: &mut Context, width: f32, height: f32) {
+        // TODO get from OS rather than hard-code the scale
+        self.mandel_uniforms.dimension[0] = width * 1.5;
+        self.mandel_uniforms.dimension[1] = height * 1.5;
+    }
+
+    fn draw(&mut self, ctx: &mut Context) -> GameResult {
+        graphics::clear(ctx, [0.1, 0.1, 0.3, 1.0].into());
+        {
+            let _lock = graphics::use_shader(ctx, &self.shader);
+            self.shader.send(ctx, self.mandel_uniforms)?;
+            graphics::draw(ctx, &self.canvas_render_target, DrawParam::default())?;
+            graphics::present(ctx)?;
+        }
+        Ok(())
     }
 
     fn key_down_event(
@@ -102,23 +105,23 @@ impl ggez::event::EventHandler for MainState {
         _repeat: bool,
     ) {
 
+        // TODO work out how to decouble responsibility
         let mut zoom_coeficient = (0.0f32, 0.0f32);
         match Direction::from_keycode(keycode) {
             Some(Direction::Up)    => zoom_coeficient = (0.0, 1.0),
             Some(Direction::Down)  => zoom_coeficient = (0.0, -1.0),
             Some(Direction::Left)  => zoom_coeficient = (-1.0, 0.0),
             Some(Direction::Right) => zoom_coeficient = (1.0, 0.0),
-                None => {},
+            None => {},
         }
 
-        self.mand.center[0] -= zoom_coeficient.0 / self.mand.zoom;
-        self.mand.center[1] -= zoom_coeficient.1 / self.mand.zoom;
-        // self.mand.center[0] *= ZOOM_SCALE;
-        // self.mand.center[1] *= ZOOM_SCALE;
+        self.mandel_uniforms.center[0] -= zoom_coeficient.0 / self.mandel_uniforms.zoom;
+        self.mandel_uniforms.center[1] -= zoom_coeficient.1 / self.mandel_uniforms.zoom;
 
+        // TODO add comments to template high-level representation of planned commands
         match keycode {
-            KeyCode::Period => self.mand.zoom *= 1.0 + 1.0/10.0,
-            KeyCode::E => self.mand.zoom *= 1.0 - 1.0/10.000_01,
+            KeyCode::Period => self.mandel_uniforms.zoom *= 1.0 + 1.0/10.0,
+            KeyCode::E => self.mandel_uniforms.zoom *= 1.0 - 1.0/10.000_01,
             KeyCode::Q => {
                 println!("MainState\n=========\n {:#?}", &self);
                 ggez::quit(ctx);
@@ -126,18 +129,6 @@ impl ggez::event::EventHandler for MainState {
             _ => {}
         }
     }
-    fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        graphics::clear(ctx, [0.1, 0.1, 0.3, 1.0].into());
-        {
-            let _lock = graphics::use_shader(ctx, &self.shad);
-            self.shad.send(ctx, self.mand)?;
-            // let foreground = Canvas::with_window_size(ctx)?;
-            graphics::draw(ctx, &self.canvas, DrawParam::default())?;
-            graphics::present(ctx)?;
-        }
-        Ok(())
-    }
-
 }
 
 fn main() -> GameResult {
@@ -155,5 +146,4 @@ fn main() -> GameResult {
     let mut ms = MainState::new(ctx)?;
 
     ggez::event::run(ctx, event_loop, &mut ms)
-
 }
