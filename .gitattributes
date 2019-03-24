@@ -1,0 +1,11 @@
+# Trivial file extensions
+*.frag linguist-language=GLSL
+*.vert linguist-language=GLSL
+*.geom linguist-language=GLSL
+
+# This project's file extensions
+*.glslv linguist-language=GLSL
+*.glslf linguist-language=GLSL
+
+## Experimental
+*.glsl* linguist-language=GLSL
