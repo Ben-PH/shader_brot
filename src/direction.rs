@@ -20,7 +20,6 @@ impl Direction {
 }
 
 mod test {
-    use super::*;
 
     #[test]
     fn key_code_to_direction() {
