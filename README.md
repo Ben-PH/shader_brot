@@ -19,20 +19,4 @@ Assuming no curve-balls in the process, all you need to do to run this is to clo
 - W to increase detail (decreases performance
 
 ### What's going on?
-At time of writing, it's a shader-powered mandelbrot-set renderer, with a per-frame refresh. My details
-
-#### Hardware
-
-- APU: Mesa DRI Intel(R) HD Graphics 520 (Skylake GT2) 
-- CPU: Intel Core i5-6200U @ 4x 2.8GHz
-
-#### Fractal details
-
-- Iteration depth: variable
-- 64-bit precision
-- glsl version 440 core
-- resolution: appx. 1920x1080
-- cpu usage: 20-25% CPU, with 50-75% of that on one core, the rest on other cores.
-
-
-
+At time of writing, it's a shader-powered mandelbrot-set renderer, with a per-frame refresh.
