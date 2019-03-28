@@ -10,13 +10,12 @@ out vec4 Target0;
 dvec2 vec2_to_dvec2(vec2 floatvec2);          // Naive approach to guaranteeing double precision
 dvec2 viewport_coord_to_complex(dvec2 coord); // moves and scales gl_FragCoord to desired complex number
 
-// For this iterative escape-fractal, we need to select start value, and iterative modifier
-dvec2 get_c();
-dvec2 get_z();
+dvec2 mouse_pos_to_complex();
+dvec2 fragment_coord_to_complex();
 
 vec3 hsv2rgb( vec3 c);
 
-layout (std140) uniform Mandel {
+layout (std140) uniform MandelShaderUniforms {
   uniform dvec2 u_Center;     // where on the complex plain the user wants the screen-center
   uniform dvec2 u_Dimension;  // the width and height user wants the view onto the complex plane
   uniform dvec2 u_Resolution; // user interogates the pixel coverage of the view, and provides it here
@@ -32,8 +31,16 @@ layout (std140) uniform Mandel {
 void main() {
 
   // load up our iteration values
-  dvec2 z = get_z();
-  dvec2 c = get_c();
+  dvec2 complex_mouse = mouse_pos_to_complex();
+  dvec2 complex_fragment = fragment_coord_to_complex();
+  dvec2 z, c;
+  if (u_IsMandel == 1) {
+    z = dvec2(0.0, 0.0);
+    c = complex_fragment;
+  } else {
+    z = complex_fragment;
+    c = complex_mouse;
+  }
 
 
   int step_count;
@@ -98,33 +105,12 @@ dvec2 viewport_coord_to_complex(dvec2 coord) {
 
 // TODO set it up so that responsibility between mandel and julia decoupled
 //      at the moment seperate areoas are tightly coupled
-dvec2 get_c() {
-  dvec2 result;
-
-  // for mandel, the iter-step is where that pixel sits in the complex plane
-  // but for julia, it's based on mouse position
-  if(u_IsMandel != 0) {
-    result = viewport_coord_to_complex(gl_FragCoord.xy);
-  } else {
-    result = viewport_coord_to_complex(u_MousePos);
-  }
-
-  return result;
+dvec2 fragment_coord_to_complex() {
+    return viewport_coord_to_complex(gl_FragCoord.xy);
 }
 
-// TODO see get_c()
-dvec2 get_z() {
-  dvec2 result;
-
-  // for mandel, iterate starting from 0, for julia, the start relates to location in
-  // the complex plane
-  if(u_IsMandel != 0) {
-    result = dvec2(0.0, 0.0);
-  } else {
-    result = viewport_coord_to_complex(gl_FragCoord.xy);
-  }
-
-  return result;
+dvec2 mouse_pos_to_complex() {
+    return viewport_coord_to_complex(u_MousePos);
 }
 
 
