@@ -1,5 +1,7 @@
 [package]
 name = "ggez-shader"
+description = "Using ggez crate for the front end, and glsl shader for rendering."
+license = "MPL-2.0"
 version = "0.1.0"
 authors = ["Ben-PHb <benphawke@gmail.com>"]
 edition = "2018"
