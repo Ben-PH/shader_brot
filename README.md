@@ -1,6 +1,8 @@
 # Fancy title
 Thanks for having a look at this side-project of mine.
 
+Youtube playlist of demos [here](https://www.youtube.com/playlist?list=PLrriSbGy4itgS2tNGbgveFjb-8Tf1CnDN&fbclid=IwAR1ycQVb1wZEr-Wvt88IrNlIXRAsMfT7I61Vg9etkCPbW8HDAkdq9Y8p2lI)
+
 If you're interested, I'm currently looking for mentors in Rust, game-dev, and writing and using shaders (or a combination of those). I can't guarantee anything in return beyond gratitude, but I love to teach and mentor, so maybe we can find something. 
 
 ## Installation and running
