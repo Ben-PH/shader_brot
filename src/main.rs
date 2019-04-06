@@ -18,6 +18,8 @@ mod direction;
 use direction::*;
 
 const SPEED_SCALE: f64 = 0.3;
+const MODE_COUNT: i32 = 3;
+const DEFAULT_ITER: i32 = 70;
 
 gfx_defines! {
 
@@ -30,7 +32,7 @@ gfx_defines! {
         position: [f32; 2] = "u_MousePos",
         time: f32 = "u_Time",
         max_iter: i32 = "u_MaxIteration",
-        is_mandel: i32 = "u_IsMandel",
+        mandel_mode: i32 = "u_MandelMode",
     }
 }
 
@@ -43,12 +45,16 @@ impl MandelShaderUniforms {
             center: [-0.5, -0.0],
             dimension: [3.0, 2.0],
             time: 0.0,
-            max_iter: 120,
+            max_iter: DEFAULT_ITER,
             resolution: [graphics::size(ctx).0, graphics::size(ctx).1],
-            is_mandel: 1,
+            mandel_mode: 1,
         }
     }
 
+    // Hackey... would be good to put it into an enum
+    fn next_mode(&mut self) {
+        self.mandel_mode = (self.mandel_mode + 1) % MODE_COUNT;
+    }
 }
 
 
@@ -194,12 +200,7 @@ impl ggez::event::EventHandler for MainState {
                 println!("MainState\n=========\n {:#?}", &self);
                 ggez::quit(ctx);
             },
-            KeyCode::Tab => {
-                match self.uniforms_for_shader.is_mandel {
-                    0 => self.uniforms_for_shader.is_mandel = 1,
-                    _ => self.uniforms_for_shader.is_mandel = 0,
-                }
-            },
+            KeyCode::Tab => self.uniforms_for_shader.next_mode(),
             _ => {}
         }
     }

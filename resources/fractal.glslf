@@ -26,12 +26,11 @@ layout (std140) uniform MandelShaderUniforms {
     uniform dvec2 u_Dimension;  // width-height
     uniform dvec2 u_Resolution; // Pixel-resolution of viewport
 
-  
     // exploration controlls
     uniform vec2 u_MousePos;    // Used for julia-set, and hybrids
     uniform float u_Time;       // Time elapsed in seconds
     uniform int u_MaxIteration;
-    uniform int u_IsMandel;     // (A bit hacky, TODO) MandelBrot / Julia swap
+    uniform int u_MandelMode;   // (A bit hacky, TODO) MandelBrot / Julia swap
 };
 
 
@@ -44,13 +43,27 @@ void main() {
     dvec2 z, c;
 
     // We are looking at mandelbrot set
-    if (u_IsMandel == 1) {
-        z = dvec2(0.0, 0.0);
-        c = complex_fragment;
-    } else {
-        // we are looking at julia set
+    switch (u_MandelMode) {
+
+        // julia
+    case 1:
         z = complex_fragment;
         c = complex_mouse;
+        break;
+
+        // hybrid
+    case 2:
+        z = dvec2(0.0, 0.0) + complex_mouse * 0.9;
+        c = complex_fragment;
+        break;
+
+        // mandelbrot
+    case 0:
+    default:
+        z = dvec2(0.0, 0.0);
+        c = complex_fragment;
+        break;
+
     }
 
 
