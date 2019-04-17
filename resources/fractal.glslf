@@ -3,8 +3,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #version 420 core
 
-#define ESCAPE_BOUNDARY 18
-#define FREQUENCY 1.0
+#define ESCAPE_BOUNDARY 18.0
+#define FREQUENCY 0.8
+#define COL_BAND_SCALE 2.0
 
 in highp vec4 gl_FragCoord;
 out vec4 Target0;
@@ -66,9 +67,6 @@ void main() {
 
     }
 
-
-
-
     int step_count;
     dvec2 tmp;
     for (step_count = 0; step_count < u_MaxIteration; step_count++) {
@@ -99,9 +97,9 @@ void main() {
         dist  = log(log(dist)) / log(two);
 
         float val = float(step_count) - dist;
-        float hue = val/10.0 - u_Time * FREQUENCY;
+        float hue = val/COL_BAND_SCALE - u_Time * FREQUENCY;
 
-        Target0 =  vec4(hsv2rgb(vec3((hue), 1.0, 1.0 )), 1.0);
+        Target0 = vec4(hsv2rgb(vec3((hue), 1.0, 1.0)), 1.0);
     }
 }
 
