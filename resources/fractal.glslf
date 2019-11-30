@@ -3,15 +3,22 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #version 420 core
 
+// Squared distance from origin to terminate iteration
+// Set to 4 for standard behaviour.
+// Higher values blend escape band
 #define ESCAPE_BOUNDARY 18.0
+// Color rotation speed.
 #define FREQUENCY 0.8
-#define COL_BAND_SCALE 2.0
+
+// Escap-steps per color rotation band
+#define COL_BAND_SCALE 1.0
 
 in highp vec4 gl_FragCoord;
 out vec4 Target0;
 
 
-dvec2 vec2_to_dvec2(vec2 floatvec2);          // Naive approach to guaranteeing double precision
+// Naive approach to guaranteeing double precision
+dvec2 vec2_to_dvec2(vec2 floatvec2);         
 dvec2 viewport_coord_to_complex(dvec2 coord);
 
 dvec2 mouse_pos_to_complex();
@@ -43,7 +50,7 @@ void main() {
     dvec2 complex_fragment = fragment_coord_to_complex();
     dvec2 z, c;
 
-    // We are looking at mandelbrot set
+    // Determine which set we are rendering
     switch (u_MandelMode) {
 
         // julia
@@ -88,9 +95,13 @@ void main() {
     }
 
 
-    if (step_count == u_MaxIteration) {
+    // steps-color mapping
+    if (step_count == u_MaxIteration) { 
+        // unescaped color
         Target0 =  vec4(1.0, 1.0, 1.0, 1.0);
     } else {
+
+        // Follow [this link](https://www.linas.org/art-gallery/escape/smooth.html) for more info
         float dist = float(length(z));
 
         float two = float(2.0);
